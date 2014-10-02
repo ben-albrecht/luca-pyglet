@@ -23,17 +23,15 @@ class Window(pyglet.window.Window):
 
         self.batch = pyglet.graphics.Batch()
         self.pause = False
-        self.num_cells = 50
+        self.num_cells = 5
         self.num_matter = 50
         self.game_box = [(self.Width/5)+1,
                          0,
                          self.Width,
                          self.Height]
         self.ObjectManager = objmgr.ObjMgr(self.game_box, self.batch)
-        self.game_objects = []
-        self.game_objects += self.ObjectManager.load(Type='cell', Num=self.num_cells)
-        self.game_objects += self.ObjectManager.load(Type='matter', Num=self.num_matter)
-        #self.game_objects = load.cells(self.game_box, self.num_cells, self.batch)
+        self.ObjectManager.load(Type='cell', Num=self.num_cells)
+        self.ObjectManager.load(Type='matter', Num=self.num_matter)
 
 
         # Pushing event handler to stack
@@ -62,16 +60,15 @@ class Window(pyglet.window.Window):
 
     def on_mouse_press(self, x, y, button, modifiers):
         clicked = False
-        for obj in self.game_objects:
+        self.objects = self.ObjectManager.objects
+        for obj in self.objects:
             if obj.hit_test(x, y):
-                print "name:", obj.name
-                print "size:", obj.scale
-                print "energy:", obj.energy
+                obj.stats()
                 clicked = True
                 break
 
         if clicked == False:
-            print "Click"
+            print "."
 
     def update(self, dt):
         # TODO: Encapsulate keyboard handling into separate methods
@@ -89,31 +86,30 @@ class Window(pyglet.window.Window):
             self.pause = not self.pause
 
         if symbol == key.P and self.Fullscreen == False:
-            #self.Fullscreen = True
-            print "Full Screen Feature Broken!"
-            #self.rescale(2.0, 2.0)
-            #self.set_fullscreen()
+            self.Fullscreen = True
+            self.rescale(2.0, 2.0)
+            self.set_fullscreen()
         if symbol == key.O and self.Fullscreen == True:
             self.Fullscreen = False
-            #self.rescale(0.5, 0.5)
-            #self.set_fullscreen(fullscreen=False)
+            self.rescale(0.5, 0.5)
+            self.set_fullscreen(fullscreen=False)
 
 
     def on_resize(self, width, height):
         super(Window, self).on_resize(width, height)
 
         # Matain Ratio
-        self.width = self.Ratio*height
+  #      self.width = self.Ratio*height
 
-        print "Old Window Width:", self.Width
-        print "Old Window Height", self.Height
-        print "New Window Width:", self.width
-        print "New Window Height", self.height
+  #      print "Old Window Width:", self.Width
+  #      print "Old Window Height", self.Height
+  #      print "New Window Width:", self.width
+  #      print "New Window Height", self.height
 
-        #self.rescale(float(self.width/self.Width), float(self.height/self.Height))
+  #      #self.rescale(float(self.width/self.Width), float(self.height/self.Height))
 
-        self.Width = self.width
-        self.Height = self.height
+  #      self.Width = self.width
+  #      self.Height = self.height
 
 
     def rescale(self, width, height):

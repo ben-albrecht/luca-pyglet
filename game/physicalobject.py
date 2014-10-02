@@ -3,11 +3,19 @@ from game import resources, util
 
 class PhysicalObject(pyglet.sprite.Sprite):
 
-    def __init__(self, box=[1920, 1080], name="physical object", *args, **kwargs):
+    def __init__(self,
+                 box=[384, 0, 1920, 1080],
+                 name="physical object",
+                 *args,
+                 **kwargs):
         super(PhysicalObject, self).__init__(*args, **kwargs)
         # Eventually I'll make a window class with shared memory for physical objects to access
         #self.dimensions = [1920, 1080]
 
+        self.mobile = False
+        # TODO - only set true when object has moved
+        self.moved = True
+        self.box = box
         self.min_x = box[0] + self.image.width/2
         self.min_y = box[1] + self.image.height/2
 
@@ -17,6 +25,7 @@ class PhysicalObject(pyglet.sprite.Sprite):
         self.dy = 0
         self.scale = 1.0
         self.dead = False
+        self.new_obj = []
 
 
     def check_bounds(self):
@@ -34,9 +43,17 @@ class PhysicalObject(pyglet.sprite.Sprite):
 
 
     def collides_with(self, other_object):
-        collision_distance = (self.image.width / 2)*self.scale + self.scale * other_object.image.width / 2
-        actual_distance = util.distance(self.position, other_object.position)
-        return (actual_distance <= collision_distance)
+        collision_distance = (self.image.width * 0.5 * self.scale + \
+                                 other_object.scale * other_object.image.width * 0.5)
+        if util.distance_x(self.position, other_object.position) <= collision_distance:
+            if util.distance_y(self.position, other_object.position) <= collision_distance:
+                collision_distance_squared = collision_distance ** 2
+                actual_distance_squared = util.distance(self.position, other_object.position)
+                return (actual_distance_squared <= collision_distance_squared)
+            else:
+                return False
+        else:
+            return False
 
 
     # Maybe handle collisions within each specific class?

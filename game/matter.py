@@ -4,11 +4,21 @@ from game import physicalobject, resources
 
 class Matter(physicalobject.PhysicalObject):
 
-    def __init__(self, name="Matter", scale=1.0, *args, **kwargs):
+    def __init__(self,
+                 name="Matter",
+                scale=0,
+                *args,
+                **kwargs):
 
         super(Matter, self).__init__(img=resources.cell_image, *args, **kwargs)
+        if scale == 0:
+            self.scale = random.randint(5,15)*0.1
+        else:
+            self.scale = scale
+
+        self.Type = 'matter'
+
         self._set_color((25+random.randint(-25, 25), 155+random.randint(-50, 100), 25+random.randint(-25, 25)))
-        self.scale = scale
         self.name = name
         self.step_size = 1
         self.scale_inv = 1.0/self.scale
@@ -53,10 +63,13 @@ class Matter(physicalobject.PhysicalObject):
 
     def handle_collision_with(self, other_object):
         super(Matter, self).handle_collision_with(other_object)
-        if "cell" in other_object.name:
-            if self.scale < 0.2:
-                self.dead = True
-                print self.name, " eaten by ", other_object.name
-            else:
-                self.scale += -0.1
+        if other_object.Type == 'cell':
+            if other_object.energy < other_object.energy_max - 10:
+                if self.scale < 0.2:
+                    self.dead = True
+                else:
+                    self.scale += -0.1
 
+    def stats(self):
+        print "\nname: ", self.name
+        print "energy: ", self.scale*10
