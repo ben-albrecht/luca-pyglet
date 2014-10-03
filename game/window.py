@@ -23,8 +23,8 @@ class Window(pyglet.window.Window):
 
         self.batch = pyglet.graphics.Batch()
         self.pause = False
-        self.num_cells = 5
-        self.num_matter = 50
+        self.num_cells = 3
+        self.num_matter = 100
         self.game_box = [(self.Width/5)+1,
                          0,
                          self.Width,
@@ -32,6 +32,7 @@ class Window(pyglet.window.Window):
         self.ObjectManager = objmgr.ObjMgr(self.game_box, self.batch)
         self.ObjectManager.load(Type='cell', Num=self.num_cells)
         self.ObjectManager.load(Type='matter', Num=self.num_matter)
+        rect = rectangle.Rectangle(0, 0, self.Width/5, self.Height, self.batch)
 
 
         # Pushing event handler to stack
@@ -55,7 +56,6 @@ class Window(pyglet.window.Window):
     def on_draw(self):
             self.clear() #clears the screen
             self.batch.draw()
-            rect = rectangle.Rectangle(0, 0, self.Width/5, self.Height, self.batch)
             self.fps_display.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -68,7 +68,7 @@ class Window(pyglet.window.Window):
                 break
 
         if clicked == False:
-            print "."
+            pass
 
     def update(self, dt):
         # TODO: Encapsulate keyboard handling into separate methods

@@ -42,10 +42,10 @@ class Matter(physicalobject.PhysicalObject):
 
 
     def update(self, dt):
-        movement = self.move()
-        self.dx = movement[0]
-        self.dy = movement[1]
-        self.set_position(self.x + self.dx, self.y + self.dy)
+        #movement = self.move()
+        #self.dx = movement[0]
+        #self.dy = movement[1]
+        #self.set_position(self.x + self.dx, self.y + self.dy)
         super(Matter, self).update(dt)
 
 
@@ -64,7 +64,7 @@ class Matter(physicalobject.PhysicalObject):
     def handle_collision_with(self, other_object):
         super(Matter, self).handle_collision_with(other_object)
         if other_object.Type == 'cell':
-            if other_object.energy < other_object.energy_max - 10:
+            if other_object.energy < other_object.energy_max-5:
                 if self.scale < 0.2:
                     self.dead = True
                 else:

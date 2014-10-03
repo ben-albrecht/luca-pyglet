@@ -13,12 +13,12 @@ class Cell(physicalobject.PhysicalObject):
                  **kwargs):
 
         
-        if min_size == 0.0:
-            self.min_size=random.randint(5,15)*0.1
+        if min_size <= 0.2:
+            self.min_size=random.randint(8,15)*0.1
         else:
             self.min_size = min_size
-        if max_size == 0.0:
-            self.max_size=random.randint(10,35)*0.1
+        if max_size <= 0.2:
+            self.max_size=random.randint(16,35)*0.1
         else:
             self.max_size = max_size
 
@@ -57,6 +57,8 @@ class Cell(physicalobject.PhysicalObject):
         self.lifespan = 70
         self.new_obj = []
 
+        self.spawn_ctr = 0
+        self.spawn_cooldown = 240
 
     def random(self):
         """ Random Walk code"""
@@ -82,22 +84,21 @@ class Cell(physicalobject.PhysicalObject):
             self.energy += self.spawn()
             #and self.maturity >= self.fertility_min \
             #and self.maturity <= self.fertility_max:
-        else:
 
-            self.energy += self.move()
-            self.energy += self.behavior(dt, objects)
-            self.energy += self.grow()
+        self.energy += self.move()
+        self.energy += self.behavior(dt, objects)
+        self.energy += self.grow()
 
 
-            super(Cell, self).update(dt)
-            if self.energy < 0:
+        super(Cell, self).update(dt)
+        if self.energy < 0:
+            self.dead = True
+        if self.maturity > self.lifespan:
+            # Increasing chance of death after lifespan surpassed:
+            if random.randint(1,self.maturity) > self.lifespan:
                 self.dead = True
-            if self.maturity > self.lifespan:
-                # Increasing chance of death after lifespan surpassed:
-                if random.randint(1,self.maturity) > self.lifespan:
-                    self.dead = True
-            if self.dead == True:
-                self.die()
+        if self.dead == True:
+            self.die()
 
     def hit_test(self, x, y):
         """ See if we go out of bounds """
@@ -118,17 +119,24 @@ class Cell(physicalobject.PhysicalObject):
 
         
     def spawn(self):
-        print self.name, "spawns new offspring!", self.name+"_child" 
-        self.new_obj.append(Cell( min_size = self.min_size,
-                                  max_size = self.max_size,
-                                  name = self.name+"_child",
-                                  energy = int(self.fertility_cost*0.3),
-                                  Color = self.Color,
-                                  box = self.box,
-                                  x = self.x + self.width * 0.5,
-                                  y = self.y + self.height* 0.5,
-                                  batch=self.batch))
-        return -self.fertility_cost
+        self.spawn_ctr += -1
+        if self.spawn_ctr <= 0:
+            self.spawn_ctr = self.spawn_cooldown
+
+
+            print self.name, "spawns new offspring!", self.name+"_child" 
+            self.new_obj.append(Cell( min_size = self.min_size + random.randint(-5,5)*0.1,
+                                      max_size = self.max_size + random.randint(-5,5)*0.1,
+                                      name = self.name+"_child",
+                                      energy = int(self.fertility_cost*0.8),
+                                      Color = self.Color,
+                                      box = self.box,
+                                      x = self.x + self.width * 0.5,
+                                      y = self.y + self.height* 0.5,
+                                      batch=self.batch))
+            return -self.fertility_cost
+        else:
+            return 0
 
     def move(self):
         return self.random()
@@ -141,14 +149,12 @@ class Cell(physicalobject.PhysicalObject):
         # Determine when to start searching for food
         if self.target == None and self.searching == False:
             self.searching = bool(random.getrandbits(1))
-            if self.searching == True:
-                print self.name, "Begin searching for food"
         elif self.target == None and self.searching == True:
             return self.search(objects)
         else:
             # Target found
             if self.target.dead:
-                print "Target is dead"
+                #print "Target is dead"
                 self.target = None
                 self.searching = False
             else:
@@ -160,7 +166,7 @@ class Cell(physicalobject.PhysicalObject):
         """
         Search for a target
         """
-        if self.time%60 == 0:
+        if self.time%30 == 0:
             self.search_radius += 10
 
             for obj in [obj for obj in objects if obj.Type == 'matter']:
@@ -173,7 +179,7 @@ class Cell(physicalobject.PhysicalObject):
     
 
 
-            return -2
+            return random.randint(-1,0)
         else:
             return 0
 
@@ -201,7 +207,7 @@ class Cell(physicalobject.PhysicalObject):
         else:
             self.set_position(self.x + dx, self.y + dy)
 
-        if dt % 120 == 0:
+        if self.time % 240 == 0:
             return -1
         else:
             return 0

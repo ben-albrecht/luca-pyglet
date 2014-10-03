@@ -75,10 +75,15 @@ class ObjMgr():
         # Add objects for this dt
         self.objects.extend(to_add)
 
+        for obj in to_add:
+            print obj.name
+            print len(self.objects)
+
 
 
 
     def spawn_matter(self):
+        # Doesn't work
         while self.counter[1]*5 < self.counter[0]:
             new_obj = self.types['matter'](box=self.box,
                                 name='matter'+str(self.counter[self.indices['matter']]),
@@ -94,13 +99,15 @@ class ObjMgr():
         # (1) Only if an object is in self.has_moved[ ] will they check collision
         # (2) Chop up game window into grid, and only check collisions with grid
         for i in xrange(len(self.objects)):
-            for j in xrange(i+1, len(self.objects)):
-                obj_1 = self.objects[i]
-                obj_2 = self.objects[j]
-                if not obj_1.dead and not obj_2.dead:
-                    if obj_1.collides_with(obj_2):
-                        obj_1.handle_collision_with(obj_2)
-                        obj_2.handle_collision_with(obj_1)
+            if self.objects[i].Type == 'cell':
+                for j in xrange(1, len(self.objects)):
+                    if not self.objects[i] == self.objects[j]:
+                        obj_1 = self.objects[i]
+                        obj_2 = self.objects[j]
+                        if not obj_1.dead and not obj_2.dead:
+                            if obj_1.collides_with(obj_2):
+                                obj_1.handle_collision_with(obj_2)
+                                obj_2.handle_collision_with(obj_1)
 
 
     def update_objects(self, dt, to_add):

@@ -43,22 +43,28 @@ class PhysicalObject(pyglet.sprite.Sprite):
 
 
     def collides_with(self, other_object):
-        collision_distance = (self.image.width * 0.5 * self.scale + \
-                                 other_object.scale * other_object.image.width * 0.5)
-        if util.distance_x(self.position, other_object.position) <= collision_distance:
-            if util.distance_y(self.position, other_object.position) <= collision_distance:
-                collision_distance_squared = collision_distance ** 2
-                actual_distance_squared = util.distance(self.position, other_object.position)
-                return (actual_distance_squared <= collision_distance_squared)
+
+        if util.distance_x(self.position, other_object.position) <= 50:
+            collision_distance = (self.image.width * 0.5 * self.scale + \
+                             other_object.scale * other_object.image.width * 0.5)
+            if util.distance_x(self.position, other_object.position) <= collision_distance:
+                if util.distance_y(self.position, other_object.position) <= collision_distance:
+                    collision_distance_squared = collision_distance ** 2
+                    actual_distance_squared = util.distance(self.position, other_object.position)
+                    return (actual_distance_squared <= collision_distance_squared)
+                else:
+                    return False
             else:
                 return False
-        else:
-            return False
 
 
     # Maybe handle collisions within each specific class?
     def handle_collision_with(self, other_object):
-        if other_object.__class__ == self.__class__:
+        #if "child" in self.name or "child" in other_object.name:
+            #print "collision of", self.name, self.Type
+            #print "and :", other_object.name, other_object.Type
+
+        if other_object.Type == self.Type:
             # Bounce away
             if self.x <= other_object.x:
                 dx = -1
