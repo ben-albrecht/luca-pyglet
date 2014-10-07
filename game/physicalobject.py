@@ -26,7 +26,13 @@ class PhysicalObject(pyglet.sprite.Sprite):
         self.scale = 1.0
         self.dead = False
         self.new_obj = []
+        self.time = 0
 
+        # Clicking Mechanics
+        self.clicked = False
+        self.inview = [self]
+
+        self.direction = 0
 
     def check_bounds(self):
         """
@@ -34,12 +40,16 @@ class PhysicalObject(pyglet.sprite.Sprite):
         """
         if self.x < self.min_x:
             self.x = self.min_x
+            self.direction = 0
         elif self.x > self.max_x:
             self.x = self.max_x
+            self.direction = 1
         if self.y < self.min_y:
             self.y = self.min_y
+            self.direction = 2
         elif self.y > self.max_y:
             self.y = self.max_y
+            self.direction = 3
 
 
     def collides_with(self, other_object):
@@ -67,15 +77,14 @@ class PhysicalObject(pyglet.sprite.Sprite):
         if other_object.Type == self.Type:
             # Bounce away
             if self.x <= other_object.x:
-                dx = -1
+                dx = -self.image.width*0.5
             else:
-                dx = 1
+                dx = self.image.width*0.5
             if self.y <= other_object.y:
-                dy = -1
+                dy = -self.image.height*0.5
             else:
-                dy = 1
+                dy = self.image.height*0.5
             self.set_position(self.x + dx, self.y + dy)
-            other_object.set_position(other_object.x + dx, other_object.y + dy)
         else:
             pass
 
@@ -83,10 +92,10 @@ class PhysicalObject(pyglet.sprite.Sprite):
     def update(self, dt):
        self.check_bounds()
 
-    
+
     def delete(self):
         """ Delete object"""
-        #self.engine_sprite.delete() 
+        #self.engine_sprite.delete()
         super(PhysicalObject, self).delete()
 
 

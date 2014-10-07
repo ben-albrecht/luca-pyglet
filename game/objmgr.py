@@ -26,6 +26,7 @@ class ObjMgr():
         self.objects_y = []
         self.objects_type = []
 
+
         self.types = {'cell'   : cell.Cell,
                       'matter' : matter.Matter}
 
@@ -33,7 +34,7 @@ class ObjMgr():
                          'matter' : 1}
 
 
-            
+
 
 
     def load(self, Type='cell', Num=10):
@@ -43,7 +44,7 @@ class ObjMgr():
                                 x=random.randint(self.xmin, self.xmax),
                                 y=random.randint(self.ymin, self.ymax),
                                 batch=self.Batch)
-    
+
             collides = False
             for i in xrange(len(self.objects)):
                 other_obj = self.objects[i]
@@ -54,35 +55,33 @@ class ObjMgr():
                 self.objects.append(new_obj)
                 self.counter[self.indices[Type]] += 1
 
-    
-    def update(self, dt): 
 
-        # Spawn matter when matter is low (temporary)
-        self.spawn_matter()
+    def update(self, dt):
+
 
         # Check collisions from last dt
-        self.check_collisions() 
+        self.check_collisions()
 
         # Start list of objects to add
         to_add = []
 
         # Update objects for this dt
         to_add = self.update_objects(dt, to_add)
-        
+
         # Remove objects for this dt
         to_add = self.remove_objects(to_add)
+
+        # Spawn matter if necessary
+        # to_add = self.spawn_matter(to_add)
 
         # Add objects for this dt
         self.objects.extend(to_add)
 
-        for obj in to_add:
-            print obj.name
-            print len(self.objects)
 
 
 
 
-    def spawn_matter(self):
+    def spawn_matter(self, to_add):
         # Doesn't work
         while self.counter[1]*5 < self.counter[0]:
             new_obj = self.types['matter'](box=self.box,
@@ -90,12 +89,14 @@ class ObjMgr():
                                 x=random.randint(self.xmin, self.xmax),
                                 y=random.randint(self.ymin, self.ymax),
                                 batch=self.Batch)
-            self.objects.append(new_obj)
+            to_add.extend(new_obj)
+            #self.objects.append(new_obj)
             self.counter[self.indices['matter']] += 1
+        return to_add
 
 
     def check_collisions(self):
-        # Efficiency: 
+        # Efficiency:
         # (1) Only if an object is in self.has_moved[ ] will they check collision
         # (2) Chop up game window into grid, and only check collisions with grid
         for i in xrange(len(self.objects)):
@@ -127,7 +128,7 @@ class ObjMgr():
             to_add.extend(obj.new_obj)
             obj.new_obj = []
         return to_add
-            
+
 
     def remove_objects(self, to_add):
         # Remove any objects that died from objects and call obj.delete()

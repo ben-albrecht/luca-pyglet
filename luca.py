@@ -1,6 +1,10 @@
 import pyglet
 from game import window, util
 
+# disable error checking for increased performance
+pyglet.options['debug_gl'] = False
+
+
 PROFILE = True
 MEM_PROFILE = False
 
@@ -9,17 +13,16 @@ if util.module_exists('cProfile') and util.module_exists('pstats'):
     import pstats
 else:
     PROFILE = False
-   
+
 if util.module_exists('memory_profiler'):
     from memory_profiler import profile
     #import memory_profiler
 else:
     MEM_PROFILE = False
 
-win = window.Window()
-
 
 def main():
+    win = window.Window()
     pyglet.clock.schedule_interval(win.update, 1/60.0)
     pyglet.app.run()
 
@@ -34,5 +37,5 @@ if __name__ == '__main__':
         p.strip_dirs().sort_stats('tottime').print_stats(15)
     else:
         main()
-    
+
 

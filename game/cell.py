@@ -12,7 +12,7 @@ class Cell(physicalobject.PhysicalObject):
                  *args,
                  **kwargs):
 
-        
+
         if min_size <= 0.2:
             self.min_size=random.randint(8,15)*0.1
         else:
@@ -26,7 +26,7 @@ class Cell(physicalobject.PhysicalObject):
         self.scale = self.min_size
 
         if Color == (0, 0, 0):
-            self.Color = (192+random.randint(-80,10), 192+random.randint(-40, 20), 192+random.randint(-10, 50))
+            self.Color = (192+random.randint(-80,40), 192+random.randint(-80, 40), 192+random.randint(-10, 50))
         else:
             self.Color = Color
         self._set_color(self.Color)
@@ -38,7 +38,7 @@ class Cell(physicalobject.PhysicalObject):
         self.mobile = True
         self.searching = False
         self.target = None
-        self.search_radius = 10
+        self.search_radius = 20
 
         self.name = name
         self.step_size = 1
@@ -57,37 +57,28 @@ class Cell(physicalobject.PhysicalObject):
         self.lifespan = 70
         self.new_obj = []
 
-        self.spawn_ctr = 0
-        self.spawn_cooldown = 240
+        self.spawn_cooldown = 1000
+        self.spawn_ctr = self.spawn_cooldown
 
-    def random(self):
-        """ Random Walk code"""
+        # Wander
+        self.direction = 0
 
-        if random.random() < self.scale_inv:
-            if bool(random.getrandbits(1)):
-                if bool(random.getrandbits(1)):
-                    dz = (1, 0)
-                else:
-                    dz = (-1, 0)
-            else:
-                if bool(random.getrandbits(1)):
-                    dz = (0, 1)
-                else:
-                    dz = (0, -1)
-            self.set_position(self.x + dz[0], self.y + dz[1])
-        return 0
+        # Circle
+        self.center = [0, 0]
+        self.radius = 30
 
 
     def update(self, dt, objects = []):
         self.time += 1
-        if self.energy >= self.fertility_req:
+        if self.energy >= self.fertility_req \
+        and self.maturity >= self.fertility_min \
+        and self.maturity <= self.fertility_max:
             self.energy += self.spawn()
-            #and self.maturity >= self.fertility_min \
-            #and self.maturity <= self.fertility_max:
 
         self.energy += self.move()
         self.energy += self.behavior(dt, objects)
         self.energy += self.grow()
+
 
 
         super(Cell, self).update(dt)
@@ -114,17 +105,18 @@ class Cell(physicalobject.PhysicalObject):
 
     def handle_collision_with(self, other_object):
         super(Cell, self).handle_collision_with(other_object)
-        if "matter" in other_object.name and self.energy < self.energy_max - 10:
+        if other_object.Type == 'matter' and self.energy < self.energy_max - 10 and self.time % 10 == 0:
+            # Eat the food!
             self.energy += 10
+        if other_object.Type == 'cell':
+            pass
 
-        
+
     def spawn(self):
         self.spawn_ctr += -1
         if self.spawn_ctr <= 0:
             self.spawn_ctr = self.spawn_cooldown
-
-
-            print self.name, "spawns new offspring!", self.name+"_child" 
+            #print self.name, "spawns new offspring!", self.name+"_child"
             self.new_obj.append(Cell( min_size = self.min_size + random.randint(-5,5)*0.1,
                                       max_size = self.max_size + random.randint(-5,5)*0.1,
                                       name = self.name+"_child",
@@ -138,8 +130,92 @@ class Cell(physicalobject.PhysicalObject):
         else:
             return 0
 
+
     def move(self):
-        return self.random()
+        if self.hungry() and self.target == None:
+            return self.wander()
+        elif self.hungry() and not self.target == None:
+            return self.pathfind()
+        else:
+            return self.random()
+
+
+    def random(self):
+        """ Random Walk code"""
+
+        if random.random() < self.scale_inv:
+            if bool(random.getrandbits(1)):
+                if bool(random.getrandbits(1)):
+                    dz = (1, 0)
+                else:
+                    dz = (-1, 0)
+            else:
+                if bool(random.getrandbits(1)):
+                    dz = (0, 1)
+                else:
+                    dz = (0, -1)
+            self.set_position(self.x + dz[0], self.y + dz[1])
+        return 0
+
+
+    def wander(self):
+        if random.randint(0,20) == 0:
+            self.direction = random.randint(0,3)
+        if self.direction == 0:
+            self.set_position(self.x + 1, self.y + random.randint(-1,1))
+        elif self.direction == 1:
+            self.set_position(self.x - 1, self.y + random.randint(-1,1))
+        elif self.direction == 2:
+            self.set_position(self.x + random.randint(-1,1), self.y + 1)
+        elif self.direction == 3:
+            self.set_position(self.x + random.randint(-1,1), self.y - 1)
+
+        if self.time%60 == 0:
+            return -1
+        else:
+            return 0
+
+    def circle(self):
+        if random.randint(0,20) == 0:
+            self.center[0] = self.x + random.randint(-30,30)
+            self.center[1] = self.y + random.randint(-30,30)
+        return 0
+
+
+
+    def pathfind(self):
+        """
+        Move towards target
+        """
+        if self.target.dead:
+            #print "Target is dead"
+            self.target = None
+            self.searching = False
+            return 0
+        else:
+            if self.x < self.target.x:
+                dx = random.randint(0,1)
+            elif self.x > self.target.x:
+                dx = random.randint(-1,0)
+            else:
+                dx = 0
+            if self.y < self.target.y:
+                dy = random.randint(0, 1)
+            elif self.y > self.target.y:
+                dy = random.randint(-1, 0)
+            else:
+                dy = 0
+
+            if self.x == self.target.x and self.y == self.target.y:
+                self.target = None
+                self.searching = False
+            else:
+                self.set_position(self.x + dx, self.y + dy)
+
+            if self.time % 240 == 0:
+                return -1
+            else:
+                return 0
 
 
     def behavior(self, dt, objects):
@@ -151,14 +227,6 @@ class Cell(physicalobject.PhysicalObject):
             self.searching = bool(random.getrandbits(1))
         elif self.target == None and self.searching == True:
             return self.search(objects)
-        else:
-            # Target found
-            if self.target.dead:
-                #print "Target is dead"
-                self.target = None
-                self.searching = False
-            else:
-                return self.pathfind(dt, self.target.x, self.target.y)
         return 0
 
 
@@ -167,52 +235,28 @@ class Cell(physicalobject.PhysicalObject):
         Search for a target
         """
         if self.time%30 == 0:
-            self.search_radius += 10
+            # self.search_radius += 10
+            # Faster, but less cool visually
+            #for obj in [obj for obj in objects if obj.Type == 'matter']:
+            #if self.clicked == True:
+            self.inview = [self]
 
-            for obj in [obj for obj in objects if obj.Type == 'matter']:
+            for obj in objects:
                 if abs(obj.x - self.x) < self.search_radius:
                     if abs(obj.y - self.y) < self.search_radius:
                             if util.distance((obj.x, obj.y), (self.x, self.y)) < self.search_radius**2:
-                                print self.name, " has found some food!"
-                                self.target = obj
-                                self.search_radius = 10
-    
-
+                                self.inview.append(obj)
+                                if obj.Type == 'matter':
+                                    self.search_radius = 20
+                                    self.target = obj
 
             return random.randint(-1,0)
         else:
             return 0
 
 
-    def pathfind(self, dt, x, y):
-        """
-        Move towards target
-        """
-        if self.x < x:
-            dx = random.randint(0,1)
-        elif self.x > x:
-            dx = random.randint(-1,0)
-        else:
-            dx = 0
-        if self.y < y:
-            dy = random.randint(0, 1)
-        elif self.y > y:
-            dy = random.randint(-1, 0)
-        else:
-            dy = 0
-         
-        if self.x == x and self.y == y:
-            self.target = None
-            self.searching = False
-        else:
-            self.set_position(self.x + dx, self.y + dy)
 
-        if self.time % 240 == 0:
-            return -1
-        else:
-            return 0
-            
-            
+
 
 
     def grow(self):
@@ -225,6 +269,9 @@ class Cell(physicalobject.PhysicalObject):
         else:
             return 0
 
+
+    def hungry(self):
+        return (self.energy < 60)
 
     def stats(self):
         print "\nname: ",     self.name

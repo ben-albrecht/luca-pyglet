@@ -63,7 +63,8 @@ class Matter(physicalobject.PhysicalObject):
 
     def handle_collision_with(self, other_object):
         super(Matter, self).handle_collision_with(other_object)
-        if other_object.Type == 'cell':
+        self.time += 1
+        if other_object.Type == 'cell' and self.time % 10 == 0:
             if other_object.energy < other_object.energy_max-5:
                 if self.scale < 0.2:
                     self.dead = True
