@@ -1,15 +1,16 @@
 luca
 ====
-Last Universal Common Ancestor (LUCA)
+Last Universal Common Ancestor (LUCA) 
+
 Microbial Life Simulator
 
 This program was fully developed in Vim
 
 Written in Python with the following libraries:
-Pyglet (multimedia Python library) 
-math (self-explanatory)
-Tkinter (window sizing)
-sys (determine OS)
+* Pyglet (multimedia Python library) 
+* math (self-explanatory)
+* Tkinter (window sizing)
+* sys (determine OS)
 
 Version 1.0 - Basic simulation
 ==============================
