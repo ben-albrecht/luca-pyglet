@@ -115,7 +115,7 @@ class Window(pyglet.window.Window):
     def update(self, dt):
         # TODO: Encapsulate keyboard handling into separate methods
 
-	self.dispatch_event('on_update', dt)
+	#self.dispatch_event('on_update', dt)
         if self.pause == True:
             return
 
